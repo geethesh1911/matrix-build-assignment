@@ -1,0 +1,55 @@
+# This workflow runs a 3-variant matrix build for the TDS ROE challenge.
+
+name: Matrix Build CI
+
+# Run on push or when manually triggered
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Run on a standard GitHub-hosted runner
+    runs-on: ubuntu-latest
+    
+    strategy:
+      # Configure the matrix with 3 different Python versions
+      # This fulfills the "3 different variants" requirement.
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+      # 1. Check out the repository code
+      - uses: actions/checkout@v4
+      
+      # 2. Set up the specific Python version for this matrix job
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      # 3. Step with the required identifier
+      # This step's name contains the required "matrix-d9a7316" identifier
+      - name: matrix-d9a7316
+        run: |
+          echo "Running build for Python ${{ matrix.python-version }}"
+          python --version
+          
+      # 4. Generate a unique, non-empty build artifact
+      - name: Generate build artifact
+        run: |
+          echo "Build output for Python ${{ matrix.python-version }}" > build-log.txt
+          echo "Generated at: $(date)" >> build-log.txt
+          echo "Runner OS: $RUNNER_OS" >> build-log.txt
+          
+      # 5. Upload the artifact using actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Name must have the prefix "build-d9a7316-"
+          # We append the variant (Python version) to make it unique
+          name: build-d9a7316-py${{ matrix.python-version }}
+          
+          # Path to the file(s) to upload
+          path: build-log.txt
